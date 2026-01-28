@@ -132,7 +132,7 @@ function render() {
 
   const p = gameState.players[gameState.currentPlayer];
   document.getElementById("current-player").innerText =
-    `Player ${p.id + 1} (mod ${p.divisor}) turn`;
+    `Player ${p.id + 1}'s turn — divisor = ${p.divisor}`;
 
   undoBtn.disabled = undoStack.length === 0;
   redoBtn.disabled = redoStack.length === 0;
@@ -164,7 +164,7 @@ function attemptMove(i, j) {
   const d = player.divisor;
 
   if ((a + b) % d !== 0) {
-    alert(`Illegal move: (${a} + ${b}) mod ${d} ≠ 0`);
+    alert(`Illegal move: ${a} + ${b} is not divisible by ${d}`);
     return;
   }
 

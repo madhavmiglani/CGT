@@ -1,6 +1,7 @@
 let gameState = null;
 let selectedIndices = [];
 
+
 const startBtn = document.getElementById("startGameBtn");
 const setupPanel = document.getElementById("setup-panel");
 const gamePanel = document.getElementById("game-panel");
@@ -72,7 +73,7 @@ function renderPlayerInputs() {
  ***********************/
 function startGame() {
   const k = parseInt(numPlayersInput.value);
-  const divisors = [];
+  const players = [];
 
   for (let i = 0; i < k; i++) {
     const d = parseInt(document.getElementById(`divisor-${i}`).value);
@@ -80,7 +81,13 @@ function startGame() {
       alert("Divisors must be positive integers.");
       return;
     }
-    divisors.push(d);
+    const type = document.getElementById(`type-${i}`).value;
+    players.push({
+        id: i,
+        divisor: d,
+        alive: true,
+        type: type
+    });
   }
 
   const manual = document.querySelector('input[name="initType"]:checked').value === "manual";
@@ -107,7 +114,7 @@ function startGame() {
 
   gameState = {
     state: initialState,
-    players: divisors.map((d, i) => ({ id: i, divisor: d, alive: true })),
+    players: players,
     currentPlayer: 0
   };
 
@@ -121,6 +128,7 @@ function startGame() {
 
   resolveEliminationSequential();
   render();
+  maybeBotMove();
 }
 
 /***********************
@@ -155,8 +163,19 @@ function render() {
  * Token Interaction
  ***********************/
 function onTokenClick(index) {
-  if (selectedIndices.includes(index)) return;
+  const player = gameState.players[gameState.currentPlayer];
+  if (player.type === "bot") return;   // 🚫 block human input on bot turn
 
+  const pos = selectedIndices.indexOf(index);
+
+  // If already selected → deselect
+  if (pos !== -1) {
+    selectedIndices.splice(pos, 1);
+    render();
+    return;
+  }
+
+  // Otherwise select
   selectedIndices.push(index);
 
   if (selectedIndices.length === 2) {
@@ -166,6 +185,7 @@ function onTokenClick(index) {
 
   render();
 }
+
 
 /***********************
  * Move Attempt
@@ -192,6 +212,25 @@ function attemptMove(i, j) {
 }
 
 /***********************
+ * Compute all legal moves
+ ***********************/
+function getAllLegalMoves(divisor) {
+  const S = gameState.state;
+  const moves = [];
+
+  for (let i = 0; i < S.length; i++) {
+    for (let j = i + 1; j < S.length; j++) {
+      if ((S[i] + S[j]) % divisor === 0) {
+        moves.push([i, j]);
+      }
+    }
+  }
+
+  return moves;
+}
+
+
+/***********************
  * Turn Management
  ***********************/
 function advancePlayer() {
@@ -203,6 +242,7 @@ function advancePlayer() {
 
   resolveEliminationSequential();
   render();
+  maybeBotMove();
 }
 
 /***********************
@@ -281,3 +321,37 @@ function redoMove() {
 function deepCopy(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
+
+
+/***********************
+ * Bot Logic (Random)
+ ***********************/
+function maybeBotMove() {
+  const player = gameState.players[gameState.currentPlayer];
+
+  // Bot acts only on its own turn
+  if (player.type !== "bot") return;
+
+  // Clear any partial human selection
+  selectedIndices = [];
+  render();
+
+  setTimeout(() => {
+    const moves = getAllLegalMoves(player.divisor);
+
+    // If bot has no move → elimination logic handles it
+    if (moves.length === 0) {
+      resolveEliminationSequential();
+      render();
+      maybeBotMove();   // in case next player is also a bot
+      return;
+    }
+
+    // Choose random legal move
+    const choice = moves[Math.floor(Math.random() * moves.length)];
+    attemptMove(choice[0], choice[1]);
+  }, 500);
+}
+
+
+

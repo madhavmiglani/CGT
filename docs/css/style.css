@@ -1,0 +1,53 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+}
+
+#layout {
+  display: flex;
+  gap: 20px;
+}
+
+#left-panel {
+  flex: 3;
+}
+
+#right-panel {
+  flex: 1;
+  background: #f7f7f7;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+#right-panel ul {
+  padding-left: 18px;
+}
+
+#token-container {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.token {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #e0e0e0;
+  margin: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 18px;
+  user-select: none;
+}
+
+.token.selected {
+  background: #ffd54f;
+}
+
+#controls {
+  margin-top: 10px;
+}
